@@ -14,9 +14,24 @@ namespace Certes.Pkcs
     public enum SignatureAlgorithm
     {
         /// <summary>
-        /// SHA256 hash with RSA encryption.
+        /// RSASSA-PKCS1-v1_5 using SHA-256.
         /// </summary>
-        Sha256WithRsaEncryption
+        RS256,
+
+        /// <summary>
+        /// ECDSA using P-256 and SHA-256.
+        /// </summary>
+        ES256,
+
+        /// <summary>
+        /// ECDSA using P-384 and SHA-384.
+        /// </summary>
+        ES384,
+
+        /// <summary>
+        /// ECDSA using P-521 and SHA-512.
+        /// </summary>
+        ES512,
     }
 
     /// <summary>
@@ -32,9 +47,10 @@ namespace Certes.Pkcs
         /// <exception cref="System.ArgumentException">If the <paramref name="algorithm"/> is not supported.</exception>
         public static string ToJwsAlgorithm(this SignatureAlgorithm algorithm)
         {
-            if (algorithm == SignatureAlgorithm.Sha256WithRsaEncryption)
+            var algoName = algorithm.ToString();
+            if (!string.IsNullOrWhiteSpace(algoName))
             {
-                return "RS256";
+                return algoName;
             }
 
             throw new ArgumentException(nameof(algorithm));
@@ -53,7 +69,7 @@ namespace Certes.Pkcs
         {
             switch (algo)
             {
-                case SignatureAlgorithm.Sha256WithRsaEncryption:
+                case SignatureAlgorithm.RS256:
                     return PkcsObjectIdentifiers.Sha256WithRsaEncryption.Id;
             }
 
