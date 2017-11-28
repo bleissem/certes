@@ -8,9 +8,10 @@ namespace Certes.Crypto
     /// <summary>
     /// 
     /// </summary>
-    internal class DefaultRS256 : IAsymmetricCipherKeyPair
+    /// <seealso cref="Certes.Crypto.IAsymmetricCipherKeyPair" />
+    internal class DefaultES256 : IAsymmetricCipherKeyPair
     {
-        private RSAParameters keyPair;
+        private ECParameters parameters;
 
         /// <summary>
         /// Gets the algorithm.
@@ -18,8 +19,7 @@ namespace Certes.Crypto
         /// <value>
         /// The algorithm.
         /// </value>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public SignatureAlgorithm Algorithm => SignatureAlgorithm.RS256;
+        public SignatureAlgorithm Algorithm => SignatureAlgorithm.ES256;
 
         /// <summary>
         /// Gets the json web key.
@@ -31,22 +31,23 @@ namespace Certes.Crypto
         {
             get
             {
-                return new JsonWebKey
+                return new
                 {
-                    Exponent = JwsConvert.ToBase64String(keyPair.Exponent),
-                    KeyType = "RSA",
-                    Modulus = JwsConvert.ToBase64String(keyPair.Modulus)
+                    kty = "EC",
+                    crv = "P-256",
+                    x = JwsConvert.ToBase64String(parameters.Q.X),
+                    y = JwsConvert.ToBase64String(parameters.Q.Y),
                 };
             }
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BouncyCastleRS256"/> class.
+        /// Initializes a new instance of the <see cref="DefaultES256"/> class.
         /// </summary>
-        /// <param name="keyPair">The key pair.</param>
-        public DefaultRS256(RSAParameters keyPair)
+        /// <param name="parameters">The parameters.</param>
+        public DefaultES256(ECParameters parameters)
         {
-            this.keyPair = keyPair;
+            this.parameters = parameters;
         }
 
         /// <summary>
@@ -54,6 +55,7 @@ namespace Certes.Crypto
         /// </summary>
         /// <param name="data">The data.</param>
         /// <returns></returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         public byte[] ComputeHash(byte[] data)
         {
             using (var sha = SHA256.Create())
@@ -67,21 +69,12 @@ namespace Certes.Crypto
         /// </summary>
         /// <param name="data">The data.</param>
         /// <returns></returns>
+        /// <exception cref="System.NotImplementedException"></exception>
         public byte[] SignData(byte[] data)
         {
-            using (var rsa = RSA.Create())
+            using (var ecdsa = ECDsa.Create(this.parameters))
             {
-                rsa.ImportParameters(keyPair);
-                return rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
-            }
-        }
-
-        public static object CreateKeyPair()
-        {
-            using (var rsa = RSA.Create())
-            {
-                rsa.KeySize = 2048;
-                return rsa.ExportParameters(true);
+                return ecdsa.SignData(data, HashAlgorithmName.SHA256);
             }
         }
     }

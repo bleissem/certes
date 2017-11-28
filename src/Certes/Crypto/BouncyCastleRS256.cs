@@ -1,9 +1,9 @@
 ﻿using Certes.Jws;
 using Certes.Pkcs;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
 namespace Certes.Crypto
@@ -11,7 +11,7 @@ namespace Certes.Crypto
     /// <summary>
     /// 
     /// </summary>
-    public class BouncyCastleRS256 : IAsymmetricCipherKeyPair
+    internal class BouncyCastleRS256 : IAsymmetricCipherKeyPair
     {
         private AsymmetricCipherKeyPair keyPair;
 
@@ -21,7 +21,6 @@ namespace Certes.Crypto
         /// <value>
         /// The algorithm.
         /// </value>
-        /// <exception cref="System.NotImplementedException"></exception>
         public SignatureAlgorithm Algorithm => SignatureAlgorithm.RS256;
 
         /// <summary>
@@ -30,7 +29,7 @@ namespace Certes.Crypto
         /// <value>
         /// The json web key.
         /// </value>
-        public JsonWebKey JsonWebKey
+        public object JsonWebKey
         {
             get
             {
@@ -76,11 +75,21 @@ namespace Certes.Crypto
         /// <returns></returns>
         public byte[] SignData(byte[] data)
         {
-            var signer = SignerUtilities.GetSigner(PkcsObjectIdentifiers.Sha256WithRsaEncryption);
+            var signer = SignerUtilities.GetSigner("SHA-256withRSA");
             signer.Init(true, keyPair.Private);
             signer.BlockUpdate(data, 0, data.Length);
             var signature = signer.GenerateSignature();
             return signature;
+        }
+
+        public static object CreateKeyPair()
+        {
+            var generator = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            var generatorParams = new RsaKeyGenerationParameters(
+                BigInteger.ValueOf(0x10001), new SecureRandom(), 2048, 128);
+            generator.Init(generatorParams);
+            var keyPair = generator.GenerateKeyPair();
+            return keyPair;
         }
     }
 }

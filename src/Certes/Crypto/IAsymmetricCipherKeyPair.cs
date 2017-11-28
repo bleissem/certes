@@ -22,7 +22,7 @@ namespace Certes.Crypto
         /// <value>
         /// The json web key.
         /// </value>
-        JsonWebKey JsonWebKey { get; }
+        object JsonWebKey { get; }
 
         /// <summary>
         /// Computes the hash.
